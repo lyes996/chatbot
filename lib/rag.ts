@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
 import { generateEmbedding } from './ai'
 import type { SearchResult } from './supabase'
 
@@ -10,6 +10,10 @@ export async function searchSimilarDocuments(
   limit: number = 5,
   similarityThreshold: number = 0.7
 ): Promise<SearchResult[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase is not configured')
+  }
+
   try {
     // Generate embedding for the query
     const queryEmbedding = await generateEmbedding(query)
