@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchSimilarDocuments, buildContext } from '@/lib/rag'
-import { generateChatCompletion } from '@/lib/ollama'
+import { generateChatCompletion } from '@/lib/ai'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

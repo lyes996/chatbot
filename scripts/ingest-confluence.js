@@ -7,7 +7,7 @@
 
 require('dotenv').config()
 const { createClient } = require('@supabase/supabase-js')
-const { Ollama } = require('ollama')
+const OpenAI = require('openai').default
 
 // Configuration
 const CONFLUENCE_BASE_URL = process.env.CONFLUENCE_BASE_URL
@@ -18,8 +18,7 @@ const CONFLUENCE_SPACE_KEY = process.env.CONFLUENCE_SPACE_KEY
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama2'
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
 // Validate configuration
 if (!CONFLUENCE_BASE_URL || !CONFLUENCE_USERNAME || !CONFLUENCE_API_TOKEN || !CONFLUENCE_SPACE_KEY) {
@@ -33,8 +32,13 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   process.exit(1)
 }
 
+if (!OPENAI_API_KEY) {
+  console.error('❌ Missing OpenAI API key in .env file')
+  process.exit(1)
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-const ollama = new Ollama({ host: OLLAMA_BASE_URL })
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
 /**
  * Fetch pages from Confluence space
@@ -107,15 +111,15 @@ function cleanHtmlContent(html) {
 }
 
 /**
- * Generate embedding for text using Ollama
+ * Generate embedding for text using OpenAI
  */
 async function generateEmbedding(text) {
   try {
-    const response = await ollama.embeddings({
-      model: OLLAMA_MODEL,
-      prompt: text,
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: text,
     })
-    return response.embedding
+    return response.data[0].embedding
   } catch (error) {
     console.error('❌ Error generating embedding:', error.message)
     throw error
@@ -175,18 +179,10 @@ async function ingestConfluence() {
   console.log('🚀 Starting Confluence ingestion...\n')
 
   try {
-    // Check Ollama connection
-    console.log('🔍 Checking Ollama connection...')
-    const models = await ollama.list()
-    const hasModel = models.models.some(m => m.name.includes(OLLAMA_MODEL))
-    
-    if (!hasModel) {
-      console.error(`❌ Model "${OLLAMA_MODEL}" not found in Ollama`)
-      console.log(`Available models: ${models.models.map(m => m.name).join(', ')}`)
-      console.log(`\nRun: ollama pull ${OLLAMA_MODEL}`)
-      process.exit(1)
-    }
-    console.log(`✅ Ollama connected (model: ${OLLAMA_MODEL})\n`)
+    // Check OpenAI connection
+    console.log('🔍 Checking OpenAI connection...')
+    await openai.models.list()
+    console.log(`✅ OpenAI connected\n`)
 
     // Fetch pages
     const pages = await fetchConfluencePages()

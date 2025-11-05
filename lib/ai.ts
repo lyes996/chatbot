@@ -1,20 +1,22 @@
-import { Ollama } from 'ollama'
+import OpenAI from 'openai'
 
-const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
-const ollamaModel = process.env.OLLAMA_MODEL || 'llama2'
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+})
 
-export const ollama = new Ollama({ host: ollamaBaseUrl })
+const embeddingModel = 'text-embedding-3-small'
+const chatModel = process.env.OPENAI_MODEL || 'gpt-3.5-turbo'
 
 /**
- * Generate embeddings for a given text using Ollama
+ * Generate embeddings for a given text using OpenAI
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await ollama.embeddings({
-      model: ollamaModel,
-      prompt: text,
+    const response = await openai.embeddings.create({
+      model: embeddingModel,
+      input: text,
     })
-    return response.embedding
+    return response.data[0].embedding
   } catch (error) {
     console.error('Error generating embedding:', error)
     throw new Error('Failed to generate embedding')
@@ -22,7 +24,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 /**
- * Generate a chat completion using Ollama
+ * Generate a chat completion using OpenAI with streaming
  */
 export async function generateChatCompletion(
   prompt: string,
@@ -37,8 +39,8 @@ Context:
 ${context}
 `
 
-    const response = await ollama.chat({
-      model: ollamaModel,
+    const stream = await openai.chat.completions.create({
+      model: chatModel,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
@@ -47,9 +49,10 @@ ${context}
     })
 
     return (async function* () {
-      for await (const part of response) {
-        if (part.message?.content) {
-          yield part.message.content
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content
+        if (content) {
+          yield content
         }
       }
     })()
@@ -60,14 +63,14 @@ ${context}
 }
 
 /**
- * Check if Ollama is available and the model is loaded
+ * Check if OpenAI API is available
  */
-export async function checkOllamaHealth(): Promise<boolean> {
+export async function checkAIHealth(): Promise<boolean> {
   try {
-    const models = await ollama.list()
-    return models.models.some((m) => m.name.includes(ollamaModel))
+    await openai.models.list()
+    return true
   } catch (error) {
-    console.error('Ollama health check failed:', error)
+    console.error('OpenAI health check failed:', error)
     return false
   }
 }

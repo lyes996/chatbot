@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { generateEmbedding } from './ollama'
+import { generateEmbedding } from './ai'
 import type { SearchResult } from './supabase'
 
 /**

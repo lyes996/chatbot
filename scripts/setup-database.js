@@ -38,9 +38,9 @@ async function setupDatabase() {
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           title TEXT NOT NULL,
           content TEXT NOT NULL,
-          url TEXT NOT NULL,
+          url TEXT NOT NULL UNIQUE,
           space_key TEXT,
-          embedding vector(4096),
+          embedding vector(1536),
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
@@ -58,7 +58,7 @@ async function setupDatabase() {
     const { error: functionError } = await supabase.rpc('exec_sql', {
       sql: `
         CREATE OR REPLACE FUNCTION match_documents(
-          query_embedding vector(4096),
+          query_embedding vector(1536),
           match_threshold float,
           match_count int
         )
@@ -106,9 +106,9 @@ CREATE TABLE IF NOT EXISTS documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   content TEXT NOT NULL,
-  url TEXT NOT NULL,
+  url TEXT NOT NULL UNIQUE,
   space_key TEXT,
-  embedding vector(4096),
+  embedding vector(1536),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -122,7 +122,7 @@ CREATE INDEX IF NOT EXISTS documents_space_key_idx ON documents(space_key);
 
 -- Create match function
 CREATE OR REPLACE FUNCTION match_documents(
-  query_embedding vector(4096),
+  query_embedding vector(1536),
   match_threshold float,
   match_count int
 )

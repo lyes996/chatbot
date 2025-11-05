@@ -1,0 +1,29 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "description": "Supabase project URL (from Settings > API)",
+      "required": true
+    },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "description": "Supabase anon/public key (from Settings > API)",
+      "required": true
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "description": "Supabase service role key (from Settings > API)",
+      "required": true
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API key (from platform.openai.com/api-keys)",
+      "required": true
+    },
+    "OPENAI_MODEL": {
+      "description": "OpenAI model to use (default: gpt-3.5-turbo)",
+      "required": false
+    }
+  }
+}

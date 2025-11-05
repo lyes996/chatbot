@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { checkOllamaHealth } from '@/lib/ollama'
+import { checkAIHealth } from '@/lib/ai'
 import { supabase } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    // Check Ollama
-    const ollamaHealthy = await checkOllamaHealth()
+    // Check OpenAI
+    const aiHealthy = await checkAIHealth()
 
     // Check Supabase
     const { error: supabaseError } = await supabase
@@ -18,12 +18,12 @@ export async function GET() {
 
     const supabaseHealthy = !supabaseError
 
-    const healthy = ollamaHealthy && supabaseHealthy
+    const healthy = aiHealthy && supabaseHealthy
 
     return NextResponse.json({
       status: healthy ? 'healthy' : 'unhealthy',
       services: {
-        ollama: ollamaHealthy ? 'up' : 'down',
+        openai: aiHealthy ? 'up' : 'down',
         supabase: supabaseHealthy ? 'up' : 'down',
       },
       timestamp: new Date().toISOString(),
